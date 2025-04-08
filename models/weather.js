@@ -1,26 +1,18 @@
 const mongoose = require('mongoose');
 
 const weatherSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  date: {
-    type: String,
-    required: true,
-  },
-  time: {
-    type: String,
-    required: true,
-  },
-  temperature: Number,
-  description: String,
+  email: { type: String, required: true },
+  date: { type: String, required: true },
+  time: { type: String, required: true },
+  temperature: { type: Number, required: true },
+  description: { type: String, required: true },
   location: {
-    lat: Number,
-    lon: Number,
-    city: String,
+    lat: { type: Number, required: true },
+    lon: { type: Number, required: true },
+    city: { type: String, required: true },
   },
 });
 
-module.exports = mongoose.model('Weather', weatherSchema);
+const Weather = mongoose.models.Weather || mongoose.model('Weather', weatherSchema);
+
+module.exports = Weather;

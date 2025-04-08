@@ -1,51 +1,66 @@
-const axios = require('axios');
-const Weather = require('../models/Weather');
-const { getCityFromCoordinates } = require('../utils/googleUtils');
-
-const fetchWeatherData = async (lat, lon) => {
-  const apiKey = process.env.OPENWEATHERMAP_API_KEY;
-  const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
-
-  const response = await axios.get(url);
-  return response.data;
-};
-
-const createUserWeatherReport = async (req, res) => {
+const { User } = require('../models/index.js'); 
+const addUser = async (req, res) => {
   const { email, latitude, longitude } = req.body;
 
   try {
-    const weatherData = await fetchWeatherData(latitude, longitude);
-    const location = await getCityFromCoordinates(latitude, longitude);
+    if (!email || !latitude || !longitude) {
+      return res.status(400).json({ message: 'Email, latitude, and longitude are required' });
+    }
 
-    const report = new Weather({
+    const user = new User({
       email,
-      location,
-      temperature: weatherData.main.temp,
-      weather: weatherData.weather[0].description,
+      location: { lat: latitude, lon: longitude },
     });
 
-    await report.save();
-
-    res.status(201).json({
-      message: 'Weather report saved successfully',
-      data: report
-    });
+    await user.save();
+    res.status(201).json({ message: 'User added successfully', data: user });
   } catch (error) {
-    console.error('Error saving weather report:', error.message);
-    res.status(500).json({ message: 'Failed to save weather report' });
+    res.status(500).json({ message: 'Failed to add user', error: error.message });
   }
 };
 
-const getAllWeatherReports = async (req, res) => {
+const updateLocation = async (req, res) => {
+  const { email } = req.params;
+  const { latitude, longitude } = req.body;
+
   try {
-    const reports = await Weather.find();
-    res.status(200).json(reports);
+    if (!latitude || !longitude) {
+      return res.status(400).json({ message: 'Latitude and longitude are required' });
+    }
+
+    const user = await User.findOneAndUpdate(
+      { email },
+      { 'location.lat': latitude, 'location.lon': longitude },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'Location updated successfully', data: user });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to fetch weather reports' });
+    res.status(500).json({ message: 'Failed to update location', error: error.message });
+  }
+};
+
+const getUserByEmail = async (req, res) => {
+  const { email } = req.params;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json({ message: 'User retrieved successfully', data: user });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to retrieve user', error: error.message });
   }
 };
 
 module.exports = {
-  createUserWeatherReport,
-  getAllWeatherReports,
+  addUser,
+  updateLocation,
+  getUserByEmail,
 };

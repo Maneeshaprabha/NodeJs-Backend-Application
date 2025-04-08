@@ -1,19 +1,21 @@
 const mongoose = require('mongoose');
 
 const WeatherDataSchema = new mongoose.Schema({
-  date: String,
-  data: Object,
-  summary: String
+  date: { type: String, required: true },
+  data: { type: Object, required: true },
+  summary: { type: String, required: true },
 });
 
 const UserSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   location: {
-    lat: Number,
-    lon: Number,
-    city: String
+    lat: { type: Number, required: true },
+    lon: { type: Number, required: true },
+    city: { type: String },
   },
-  weather: [WeatherDataSchema]
+  weather: [WeatherDataSchema],
 });
 
-module.exports = mongoose.model('User', UserSchema);
+const User = mongoose.models.User || mongoose.model('User', UserSchema);
+
+module.exports = User;

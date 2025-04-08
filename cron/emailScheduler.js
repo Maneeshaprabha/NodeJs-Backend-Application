@@ -1,23 +1,64 @@
 const cron = require('node-cron');
-const User = require('../models/user');
+const { User } = require('../models');
 const { fetchWeather } = require('../services/weatherService');
-const { sendEmail } = require('../services/emailService');
 const { getWeatherSummary } = require('../services/aiService');
+const { sendEmail } = require('../services/emailService');
+const { getCityFromCoordinates } = require('../utils/googleUtils');
 
-cron.schedule('0 */3 * * *', async () => {
-  const users = await User.find();
-  for (const user of users) {
-    try {
-      const data = await fetchWeather(user.location.lat, user.location.lon);
-      const summary = await getWeatherSummary(data);
-      const date = new Date().toISOString().split('T')[0];
+console.log('Cron job initialized');
 
-      user.weather.push({ date, data, summary });
-      await user.save();
+// Run  minute for testing
+cron.schedule('* * * * *', async () => {
+  console.log('Running weather update cron job at:', new Date().toISOString());
 
-      await sendEmail(user.email, '3-Hour Weather Report', summary);
-    } catch (err) {
-      console.error(`Failed to send email to ${user.email}:`, err.message);
+  try {
+    const users = await User.find();
+    console.log(`Found ${users.length} users in the database`);
+
+    if (users.length === 0) {
+      console.log('No users found, skipping email sending');
+      return;
     }
+
+    for (const user of users) {
+      try {
+        console.log(`Processing user: ${user.email}`);
+        const { lat, lon } = user.location;
+        console.log(`Fetching weather for lat: ${lat}, lon: ${lon}`);
+        const weatherData = await fetchWeather(lat, lon);
+        console.log(`Weather data fetched: ${JSON.stringify(weatherData)}`);
+
+        console.log('Fetching city name...');
+        const city = await getCityFromCoordinates(lat, lon);
+        console.log(`City: ${city}`);
+
+        console.log('Generating weather summary...');
+        const summary = await getWeatherSummary(weatherData);
+        console.log(`Weather summary: ${summary}`);
+
+        const date = new Date().toISOString().split('T')[0];
+        user.weather.push({ date, data: weatherData, summary });
+        await user.save();
+        console.log(`Saved weather data for ${user.email}`);
+
+       
+        const emailData = {
+          username: user.email.split('@')[0], 
+          city: city || 'Unknown City',
+          date,
+          summary,
+          temperature: weatherData.main.temp,
+          description: weatherData.weather[0].description,
+        };
+
+        console.log(`Sending email to ${user.email}...`);
+        await sendEmail(user.email, '3-Hour Weather Report', emailData);
+        console.log(`Weather update sent to ${user.email}`);
+      } catch (error) {
+        console.error(`Failed to process weather update for ${user.email}:`, error.message);
+      }
+    }
+  } catch (error) {
+    console.error('Cron job error:', error.message);
   }
 });

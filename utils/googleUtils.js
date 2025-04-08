@@ -1,27 +1,28 @@
 const axios = require('axios');
 
 const getCityFromCoordinates = async (lat, lon) => {
-  const apiKey = process.env.GOOGLE_API_KEY;
-  const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${apiKey}`;
-
   try {
-    const response = await axios.get(url);
-    const results = response.data.results;
+    const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
+      params: {
+        latlng: `${lat},${lon}`,
+        key: process.env.GOOGLE_MAPS_API_KEY,
+      },
+    });
 
-    if (results.length > 0) {
-      for (const component of results[0].address_components) {
-        if (component.types.includes("locality")) {
-          return component.long_name;
-        }
-      }
-      // fallback if "locality" is not found
-      return results[0].formatted_address;
-    } else {
-      return "Unknown location";
+    const results = response.data.results;
+    if (results.length === 0) {
+      throw new Error('No location found for the given coordinates');
     }
+
+    const addressComponents = results[0].address_components;
+    const cityComponent = addressComponents.find(component =>
+      component.types.includes('locality')
+    );
+
+    return cityComponent ? cityComponent.long_name : 'Unknown City';
   } catch (error) {
-    console.error("Error in Google Geocoding API:", error.message);
-    return "Error retrieving location";
+    console.error('Failed to fetch city from coordinates:', error.message);
+    return 'Unknown City';
   }
 };
 
