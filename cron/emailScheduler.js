@@ -32,7 +32,7 @@ cron.schedule('* * * * *', async () => {
         console.log(`Weather data fetched: ${JSON.stringify(weatherData)}`);
 
         console.log('Fetching city name...');
-        const city = await getCityName(lat, lon); // Use corrected function
+        const city = await getCityName(lat, lon); 
         console.log(`City: ${city}`);
 
         console.log('Generating weather summary...');
