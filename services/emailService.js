@@ -1,14 +1,12 @@
 const nodemailer = require('nodemailer');
 
-// HTML email template 
-const  getWeatherEmailTemplate = ({ username, city, date, summary, temperature, description }) = req.body;
-const htmlTemplate = `
-
+// HTML email template generator
+const getWeatherEmailTemplate = ({ username, city, date, summary, temperature, description }) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Weather Update</title>
   <style>
     body {
@@ -95,37 +93,29 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  tls:{
+  tls: {
     rejectUnauthorized: false,
-  }
+  },
 });
 
 const sendEmail = async (to, subject, data) => {
   try {
-    // Fallback plain text version
     const text = `Your 3-Hour Weather Update\n\nHello, ${data.username}!\nHere’s your latest weather update for ${data.city} on ${data.date}:\n\nSummary: ${data.summary}\nTemperature: ${data.temperature}°C\nConditions: ${data.description}\n\nStay prepared and have a great day!`;
-
-    // HTML version using the template (if data is provided)
-    const html = data ? getWeatherEmailTemplate(data) : undefined;
+    const html = getWeatherEmailTemplate(data);
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to:email,
-      subject:"weather update",
-      html:htmlTemplate
+      to: to,
+      subject: subject,
+      text: text,
+      html: html
     };
-
-    // Only include the html field if data is provided (for test emails, we might not have data)
-    if (html) {
-      mailOptions.html = html;
-    }
 
     const info = await transporter.sendMail(mailOptions);
     console.log(`Email sent to ${to}:`, info.response);
     return info;
   } catch (error) {
     console.error(`Failed to send email to ${to}:`, error.message);
-    console.error('Error details:', error);
     throw new Error(`Failed to send email: ${error.message}`);
   }
 };
