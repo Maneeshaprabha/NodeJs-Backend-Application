@@ -1,13 +1,16 @@
+// cronJob.js
 const cron = require('node-cron');
+require("dotenv").config();
 const { User } = require('../models');
 const { fetchWeather } = require('../services/weatherService');
 const { getWeatherSummary } = require('../services/aiService');
 const { sendEmail } = require('../services/emailService');
-const { getCityFromCoordinates } = require('../utils/googleUtils');
+const nodemailer = require("nodemailer");
+const { getCityName } = require('../utils/googleUtils'); 
 
 console.log('Cron job initialized');
 
-// Run  minute for testing
+// Run every minute for testing
 cron.schedule('* * * * *', async () => {
   console.log('Running weather update cron job at:', new Date().toISOString());
 
@@ -29,7 +32,7 @@ cron.schedule('* * * * *', async () => {
         console.log(`Weather data fetched: ${JSON.stringify(weatherData)}`);
 
         console.log('Fetching city name...');
-        const city = await getCityFromCoordinates(lat, lon);
+        const city = await getCityName(lat, lon); // Use corrected function
         console.log(`City: ${city}`);
 
         console.log('Generating weather summary...');
@@ -41,9 +44,8 @@ cron.schedule('* * * * *', async () => {
         await user.save();
         console.log(`Saved weather data for ${user.email}`);
 
-       
         const emailData = {
-          username: user.email.split('@')[0], 
+          username: user.email.split('@')[0],
           city: city || 'Unknown City',
           date,
           summary,

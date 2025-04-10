@@ -1,7 +1,7 @@
 const nodemailer = require('nodemailer');
 
 // HTML email template generator
-const getWeatherEmailTemplate = ({ username, city, date, summary, temperature, description }) => `
+const getWeatherEmailTemplate = ({ username, city, date, summary, temperature, description, icon }) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -46,10 +46,16 @@ const getWeatherEmailTemplate = ({ username, city, date, summary, temperature, d
       padding: 15px;
       border-radius: 5px;
       margin-bottom: 20px;
+      text-align: center; /* Center the image and text */
     }
     .weather-details p {
       margin: 5px 0;
       font-size: 16px;
+    }
+    .weather-icon {
+      width: 100px; /* Adjust size as needed */
+      height: 100px;
+      margin: 10px auto;
     }
     .footer {
       background-color: #4a90e2;
@@ -73,6 +79,7 @@ const getWeatherEmailTemplate = ({ username, city, date, summary, temperature, d
       <h2>Hello, ${username}!</h2>
       <p>Here’s your latest weather update for ${city} on ${date}:</p>
       <div class="weather-details">
+        <img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${description}" class="weather-icon" />
         <p><strong>Summary:</strong> ${summary}</p>
         <p><strong>Temperature:</strong> ${temperature}°C</p>
         <p><strong>Conditions:</strong> ${description}</p>
@@ -108,7 +115,7 @@ const sendEmail = async (to, subject, data) => {
       to: to,
       subject: subject,
       text: text,
-      html: html
+      html: html,
     };
 
     const info = await transporter.sendMail(mailOptions);
@@ -119,6 +126,8 @@ const sendEmail = async (to, subject, data) => {
     throw new Error(`Failed to send email: ${error.message}`);
   }
 };
+
+
 
 // Test function to send an email immediately
 // const testEmail = async () => {
