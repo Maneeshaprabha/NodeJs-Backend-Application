@@ -1,7 +1,9 @@
 const nodemailer = require('nodemailer');
 
 // HTML email template 
-const getWeatherEmailTemplate = ({ username, city, date, summary, temperature, description }) => `
+const  getWeatherEmailTemplate = ({ username, city, date, summary, temperature, description }) = req.body;
+const htmlTemplate = `
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,6 +95,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  tls:{
+    rejectUnauthorized: false,
+  }
 });
 
 const sendEmail = async (to, subject, data) => {
@@ -105,9 +110,9 @@ const sendEmail = async (to, subject, data) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to,
-      subject,
-      text, // Plain text version
+      to:email,
+      subject:"weather update",
+      html:htmlTemplate
     };
 
     // Only include the html field if data is provided (for test emails, we might not have data)
@@ -126,24 +131,24 @@ const sendEmail = async (to, subject, data) => {
 };
 
 // Test function to send an email immediately
-const testEmail = async () => {
-  try {
-    // Test with plain text only (since we don't have weather data for the test)
-    await sendEmail('matheeshasathsarani@gmail.com', 'Test Email', {
-      username: 'Matheesha',
-      city: 'Unknown City',
-      date: new Date().toISOString().split('T')[0],
-      summary: 'This is a test email.',
-      temperature: 'N/A',
-      description: 'N/A',
-    });
-    console.log('Test email sent successfully');
-  } catch (error) {
-    console.error('Test email failed:', error.message);
-  }
-};
+// const testEmail = async () => {
+//   try {
+//     // Test with plain text only (since we don't have weather data for the test)
+//     await sendEmail('matheeshasathsarani@gmail.com', 'Test Email', {
+//       username: 'Matheesha',
+//       city: 'Unknown City',
+//       date: new Date().toISOString().split('T')[0],
+//       summary: 'This is a test email.',
+//       temperature: 'N/A',
+//       description: 'N/A',
+//     });
+//     console.log('Test email sent successfully');
+//   } catch (error) {
+//     console.error('Test email failed:', error.message);
+//   }
+// };
 
 // Run the test immediately
-testEmail();
+// testEmail();
 
 module.exports = { sendEmail };
