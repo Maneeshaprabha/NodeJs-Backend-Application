@@ -6,6 +6,8 @@ const addUser = async (req, res) => {
     if (!email || !latitude || !longitude) {
       return res.status(400).json({ message: 'Email, latitude, and longitude are required' });
     }
+    console.log("Received body:", req.body);
+
 
     const user = new User({
       email,
@@ -27,6 +29,9 @@ const updateLocation = async (req, res) => {
     if (!latitude || !longitude) {
       return res.status(400).json({ message: 'Latitude and longitude are required' });
     }
+
+    console.log("Received body:", req.body);
+
 
     const user = await User.findOneAndUpdate(
       { email },
@@ -59,8 +64,24 @@ const getUserByEmail = async (req, res) => {
   }
 };
 
+const getsendEmail = async (req, res) => {
+  const { email } = req.params;   
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    } 
+
+    res.status(200).json({ message: 'User retrieved successfully', data: user });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to retrieve user', error: error.message }); 
+  } 
+};
+
 module.exports = {
   addUser,
   updateLocation,
   getUserByEmail,
+  getsendEmail,
 };
