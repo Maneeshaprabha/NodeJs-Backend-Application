@@ -1,8 +1,9 @@
 const nodemailer = require('nodemailer');
 
-// HTML email template generator
-const getWeatherEmailTemplate = ({ username, city, date, summary, temperature, description, icon }) => `
-<!DOCTYPE html>
+require("dotenv").config();
+
+const emailTemplate = (username, city, date, icon, summary, temperature, description) => {
+  `!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -92,7 +93,9 @@ const getWeatherEmailTemplate = ({ username, city, date, summary, temperature, d
   </div>
 </body>
 </html>
-`;
+`
+}
+;
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -112,10 +115,10 @@ const sendEmail = async (to, subject, data) => {
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
-      to: to,
+      to: email,
       subject: subject,
-      text: text,
-      html: html,
+     
+      html:emailTemplate ,
     };
 
     const info = await transporter.sendMail(mailOptions);
