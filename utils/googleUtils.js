@@ -29,4 +29,16 @@ const getCityFromCoordinates = async (lat, lon) => {
   }
 }
 
-module.exports = { getCityFromCoordinates };
+const getWeatherSummary = (weatherData) => {
+  const temp = weatherData.main.temp;
+  const description = weatherData.weather[0].description;
+  const humidity = weatherData.main.humidity;
+  const wind = weatherData.wind.speed;
+
+  return `Currently ${temp}°C with ${description}. Humidity is ${humidity}%, wind speed is ${wind} m/s.`;
+};
+
+module.exports = {
+  getCityFromCoordinates,
+  getWeatherSummary
+};
